@@ -1,0 +1,185 @@
+
+
+; Jump over the data section
+
+JUMP _init
+
+;; Data segment
+
+r:		0a ; radius 10 in hexidecimal
+r2:		00 ; hold radius again
+height:		06 ;
+pi:		03 ;
+pi2:		03 ;
+double:		02 ; 
+result:		80000000 ; 
+result2:	00000000 ; 
+result3:	00000000 ;
+result4:	00000000 ;
+result5:	00000000 ;
+result6:	00000000 ;
+finalresult:	00000000 ;
+
+;; Text segment
+
+;; check that r is bigger than x2
+;; if not, we'll need to swap r and x2
+;; result is set to 80000000 to check the subtraction
+;; value of r - x2.  Do not change!
+
+_init:	
+	LDAC r
+	MVAC
+	CLAC
+	OR
+
+;; if r is a zero, just print out zero
+
+	JMPZ _clear
+	LDAC r
+	SUB
+	MVAC
+	LDAC result
+	AND
+  
+;; if the subtraction had the high bit cleared,
+;; go ahead and jump to the start of the mul code
+
+	JMPZ _multiply
+  
+;; begin mul function
+  
+_multiply:
+
+	LDAC r		;; load r into acc
+	STAC r2		;; store that in r2 as well
+	MVAC		;; move r into R
+	STAC result	;; store that into result
+	LDAC r2		;; load acc into r2
+  
+	NOT		;; compliment acc and count up to zero
+	INC		;; 
+	STAC r2		;; store it back in r2
+
+			;; NOW r2 is the negated version
+  
+_loop:	
+
+	INC		;; increment counter
+	JMPZ _mult2	;; jump to print if z is set (acc = 0)
+	STAC r2		;; store ACC in memory
+	LDAC result	;; load result into acc
+	ADD		;; add r to acc and store in acc
+	STAC result
+	LDAC r2
+	JUMP _loop
+  
+_mult2:
+
+	LDAC result	;; result is now r^2
+	MVAC		;; move r^2 into R
+	STAC result	;; store acc in result
+	LDAC pi		;; load pi into acc
+  
+  
+	NOT		;; compliment and increment to -3 
+	STAC pi		;; pi is now -3 
+  
+_loop2:	
+
+	INC		;; increment counter
+	JMPZ _double	;; jump to print if z is set (acc = 0)
+	STAC pi		;; store ACC in memory
+	LDAC result2	;; load result into acc
+	ADD		;; add r to acc and store in acc
+	STAC result2	
+	LDAC pi
+	JUMP _loop2
+
+  
+_double:
+
+	LDAC result2 	;;  
+	MVAC 	
+	ADD
+	STAC result3	;; result 3 now holds 2*pi*r^2
+
+;; now find 2*pi*r
+
+_mult3:
+
+	LDAC r		;; put r in ACC
+	MVAC 		;; move r into R
+	STAC result4	;; store acc in result
+	LDAC pi2	;; load pi into acc
+  
+  
+	NOT		;; compliment and increment to -3 
+	INC
+	STAC pi		;; pi is now -3 	
+
+_loop3:	
+
+	INC		;; increment counter
+	JMPZ _double2	;; jump to print if z is set (acc = 0)
+	STAC pi		;; store ACC in memory
+	LDAC result4	;; load result into acc
+	ADD		;; add r to acc and store in acc
+	STAC result4	
+	LDAC pi
+	JUMP _loop3
+
+_double2:
+
+	LDAC result4 	;;  
+	MVAC 	
+	ADD
+	STAC result5	;; result 5 now holds 2*pi*r
+
+;; now find height * result5
+
+_mult4:
+
+			;; result5 (2pi*r) is in acc
+	MVAC		;; move height into R
+	STAC result6	;; store that into result
+	LDAC height	;; load acc into r2
+  
+	NOT		;; compliment acc and count up to zero
+	INC		;; 
+	STAC result5	;; store it back in result5
+
+			;; NOW result5 is the negated version
+  
+_loop4:	
+
+	INC		;; increment counter
+	JMPZ _finaladd	;; jump to print if z is set (acc = 0)
+	STAC result5	;; store ACC in memory
+	LDAC result6	;; load result into acc
+	ADD		;; add r to acc and store in acc
+	STAC result6
+	LDAC result5
+	JUMP _loop4
+
+_finaladd:
+
+	LDAC result3
+	MVAC
+	LDAC result6
+	ADD
+	STAC finalresult
+	JUMP _print
+
+	
+_clear:	
+
+	STAC result
+  
+_print:	
+
+	LDAC finalresult
+	OUT
+  
+;; End
+	HALT
